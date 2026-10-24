@@ -27,7 +27,7 @@ async function main() {
   page.drawLine({ start: { x: 36, y: 719 }, end: { x: 559, y: 719 }, color: line });
   page.drawRectangle({ x: 36, y: 655, width: 523, height: 49, color: rgb(.933, .902, .82) });
   text("STATUS: IMPLEMENTED MODULES, PREVIEW VERIFIED", 48, 686, 9, bold);
-  paragraph("Person 1's initial scaffold is merged and shared types are reused. Backend routes, operational sync and deployment still require integration. This PDF records actual scope, not event readiness.", 48, 672, 498, 8.6);
+  paragraph("Person 1's order/barista workflow is merged; shared types and guest/ready APIs are supported. Lead wiring and deployed offline validation remain integration gates. This PDF records actual scope, not event readiness.", 48, 672, 498, 8.6);
   text("ARCHITECTURE / DEPENDENCY BOUNDARY", 36, 630, 9, bold);
   const boxes = [
     [36, "Phone + public board", "React / 3-5 second polling"],

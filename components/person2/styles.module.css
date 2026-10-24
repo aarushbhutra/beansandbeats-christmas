@@ -10,3 +10,8 @@
 :global(body):has(> :global(main) > .root) > :global(header){display:none}
 .header{padding:0;background:transparent;color:inherit}
 .nav a{padding:0;border:0;border-bottom:2px solid transparent;border-radius:0;background:none}
+.menuCard{display:block}
+.checks label{flex-direction:row;flex:0 1 auto;min-height:44px}
+.checks input{min-height:19px;padding:0}
+.toolbar label{flex-direction:row;flex:0 1 auto}
+.ticketTop.readyTicket{color:#183a2d}

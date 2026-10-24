@@ -23,6 +23,7 @@
       }
     ],
     "paths": {
+      "@/*": ["../../*"],
       "pdf-lib": [
         "./node_modules/pdf-lib"
       ],
@@ -38,7 +39,10 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "../../app/**/*.tsx",
+    "../../app/guest/**/*.tsx",
+    "../../app/ready/**/*.tsx",
+    "../../app/lead/menu/**/*.tsx",
+    "../../app/lead/reports/**/*.tsx",
     "../../components/person2/**/*.tsx",
     "../../lib/client/**/*.ts",
     "../../lib/client/**/*.tsx",
