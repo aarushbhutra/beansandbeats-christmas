@@ -30,3 +30,5 @@ Treat the shared agreement as the source of truth. Keep the work split, contract
 ## Development workflow
 
 The repository may start without application scaffolding. Inspect existing files and instructions before choosing commands. Once a package manager and scripts are established, use the repository's lockfile and documented checks. Keep README setup, secure environment variable names, deployment, test account provisioning, and daily reset/reconciliation instructions current.
+
+Use pnpm 11.25.0, pinned in package.json. Install with `pnpm install --frozen-lockfile`; use `pnpm dev`, `pnpm build`, `pnpm typecheck`, and `pnpm test`. Keep pnpm-lock.yaml as the only dependency lockfile.

@@ -2,7 +2,7 @@
 
 ## Established foundation
 
-- Next.js App Router + TypeScript, npm lockfile, Dexie, Supabase clients and server-only auth boundary.
+- Next.js App Router + TypeScript, pnpm lockfile (pnpm 11.25.0), Dexie, Supabase clients and server-only auth boundary.
 - Shared contract v1 in `lib/contracts.ts`; core SGT date, amount and lifecycle rules in `lib/domain.ts`.
 - Fictional typed menu/order/sync fixtures in `lib/fixtures.ts`.
 - IndexedDB stores and atomic create-order/outbox enqueue in `lib/offline/`. Hooks return arrays (empty until data is cached); `submitOperation` returns only after the local transaction commits. `getSyncState` is a snapshot, not a live subscription.

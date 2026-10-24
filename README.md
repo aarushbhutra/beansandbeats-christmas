@@ -6,7 +6,7 @@ Browser coffee booth system for Christmas Together, Singapore, 26–29 November 
 
 ## Develop
 
-Requires Node 22+ and npm. Run `npm ci`, then `npm run dev`. Production: `npm run build`, then `npm start`. Checks: `npm run typecheck` and `npm test`. No credentials are required for the scaffold pages. In the cloud workspace, use `npm ci --cache /workspace/.npm-cache` because the default home cache is not writable.
+Requires Node 22+ and pnpm 11.25.0 (pinned in `package.json`). Run `pnpm install --frozen-lockfile`, then `pnpm dev`. Production: `pnpm build`, then `pnpm start`. Checks: `pnpm typecheck` and `pnpm test`. No credentials are required for the scaffold pages. In the cloud workspace, add `--store-dir /workspace/.pnpm-store` to the install command because the home directory is not writable.
 
 Copy `.env.example` to `.env.local` and supply values through your local editor or hosting environment settings. Never commit `.env.local`. Supabase URL and publishable key may be public; the service-role key is server-only. No real credentials or test account passwords are included.
 
@@ -22,7 +22,7 @@ Read [AGENTS.md](AGENTS.md), [shared agreement](plans/SHARED-CONTRACT.md), and [
 
 ## Deployment
 
-Proposed target: a Node-compatible Next.js host such as Vercel, connected to Supabase. Set environment variables securely, build with `npm run build`, and deploy over HTTPS. Hosting account/project access has not been provided; nothing has been deployed. No test logins exist yet.
+Proposed target: a Node-compatible Next.js host such as Vercel, connected to Supabase. Set environment variables securely, build with `pnpm build`, and deploy over HTTPS. Hosting account/project access has not been provided; nothing has been deployed. No test logins exist yet.
 
 ## Daily rollover and reset (design)
 
