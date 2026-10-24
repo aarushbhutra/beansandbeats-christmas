@@ -1,0 +1,7 @@
+node_modules/
+.next/
+.env*.local
+tools/person2-preview/.data/
+tools/person2-preview/test-results/
+tools/person2-preview/playwright-report/
+*.tsbuildinfo

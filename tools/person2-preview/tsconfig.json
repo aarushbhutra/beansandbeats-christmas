@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types"],
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "pdf-lib": [
+        "./node_modules/pdf-lib"
+      ],
+      "@playwright/test": [
+        "./node_modules/@playwright/test"
+      ]
+    },
+    "allowJs": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "../../app/**/*.tsx",
+    "../../components/person2/**/*.tsx",
+    "../../lib/client/**/*.ts",
+    "../../lib/client/**/*.tsx",
+    "../../lib/server/menu/**/*.ts",
+    "../../lib/server/reports/**/*.ts",
+    "../../tests/person2/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

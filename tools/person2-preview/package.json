@@ -1,0 +1,17 @@
+{
+  "name": "beans-and-beats-person2-preview",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3202",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1 --port 3202",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test ../../tests/person2/*.test.ts",
+    "test:e2e": "playwright test",
+    "pdf": "tsx scripts/build-technical-summary.ts",
+    "record": "tsx scripts/record-walkthrough.ts"
+  },
+  "dependencies": { "next": "^16.1.6", "react": "^19.2.4", "react-dom": "^19.2.4" },
+  "devDependencies": { "@playwright/test": "^1.58.2", "@types/node": "^22.19.0", "@types/react": "^19.2.10", "@types/react-dom": "^19.2.3", "pdf-lib": "1.17.1", "tsx": "^4.21.0", "typescript": "^5.9.3" }
+}
