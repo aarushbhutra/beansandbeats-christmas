@@ -1,0 +1,1 @@
+export default function Orders(){return <><h1>Order entry</h1><p>Scaffold only. Next: registered tablet → cached menu → drink, milk, hot/iced, first name → durable save → order QR.</p><p>Orders are not accepted yet. Backend registration and sync transport are not enabled.</p></>}
