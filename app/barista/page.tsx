@@ -1,0 +1,1 @@
+export default function Barista(){return <><h1>Barista queue</h1><p>Scaffold only. Next: queued → making → ready → collected, with pending-sync indicators and staff authorization.</p><p>No live guest data is loaded.</p></>}
