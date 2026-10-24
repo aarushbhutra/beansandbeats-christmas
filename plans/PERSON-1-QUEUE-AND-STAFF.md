@@ -62,3 +62,7 @@ All shared offline, idempotency, persistence, access-control and reset gates pas
 Own shared infrastructure and API routes. Your friend owns guest/ready/menu/report screens and menu/report calculations. Notify them before changing shared contracts. If infrastructure slips, your friend can finish fixtures, report tests, docs and screen behavior while you resolve it; regroup before adding features.
 
 Do not build payments, loyalty, SMS, or native apps. Do not promise cross-device real-time sync while disconnected.
+
+## Vertical slice implementation status
+
+Order entry, device counters, persistent QR tickets, staff sign-in, barista controls, durable outbox replay, transactional sync and guest/ready read APIs are implemented. Local tests use embedded PostgreSQL and simulated IndexedDB; production build is checked. Hosted Supabase validation, real browser persistence/phone tests, deployment and test logins remain outstanding until project access is supplied. See README for setup and limitations.

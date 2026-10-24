@@ -1,0 +1,4 @@
+# Isolated preview: does not alter Person 1's root dependencies or workspace.
+packages: []
+allowBuilds:
+  esbuild: true
