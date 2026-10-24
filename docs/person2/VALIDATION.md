@@ -8,10 +8,12 @@ Run from `tools/person2-preview`:
 
 | Command | Coverage |
 | --- | --- |
-| `npm test` | 19 unit cases: token header isolation and fragment shape; HTTP error sanitization; mock adapter parity; lead versus barista/anonymous permissions; input/revision checks; integer cents, quantities, cancellation statuses, immutable prices, duplicate/mismatched data, SGT midnight, missing/stale/pending devices, CSV formula prefixes and quoting. |
-| `npm run typecheck` | Strict TypeScript across all four real routes, components, client boundary, handlers, unit tests and preview. |
-| `npm run test:e2e` | 10 Chromium cases: phone order progress/sound opt-in/stale state; landing/invalid links; board collection/removal; fixture offline save and replay; fixture conflicts; CSV/date changes; role restrictions; stale HTTP 200 and name-free cache; guest outage reload and token isolation; tablet control size/width and empty board. |
-| `npm run build` | Production compilation and prerendering of the isolated host consuming actual production components. Fixture APIs remain disabled in production mode unless explicitly enabled for loopback review. |
+| `pnpm test` | 24 passing unit cases: token header isolation and fragment shape; HTTP error sanitization; mock adapter parity; lead versus barista/anonymous permissions; input/revision checks; integer cents, quantities, cancellation statuses, immutable prices, duplicate/mismatched data, SGT midnight, missing/stale/pending devices, CSV formula prefixes/quoting, exact shared LeadHandlers and sync operation compatibility, staff bearer headers and persisted API normalization. |
+| `pnpm typecheck` | Strict TypeScript across all four real routes, components, client boundary, handlers, unit tests and preview. |
+| `pnpm test:e2e` | 10 passing Chromium cases, run against the production preview bundle: phone order progress/sound opt-in/stale state; landing/invalid links; board collection/removal; pending fixture save/reload and idempotent replay; fixture conflicts; CSV/date changes; role restrictions; stale HTTP 200 and name-free cache; guest outage reload and token isolation; tablet control size/width and empty board. |
+| `pnpm build` | Production compilation and prerendering of the isolated host consuming actual production components. Fixture APIs remain disabled in production mode unless explicitly enabled for loopback review. |
+
+After merging Person 1's `6b04c06` scaffold, the **root** `pnpm typecheck`, `pnpm test` (4 domain cases) and `pnpm build` also pass. The combined build includes `/orders`, `/barista`, `/guest`, `/ready`, `/lead/menu`, `/lead/reports` and the initial staff device route. Its unfinished backend/provider remains fail closed; route compilation does not establish full production behavior. Shared root package/configuration/contract files were not modified by Person 2 beyond resolving the merged ignore rules.
 
 Cached reload tests intentionally block the data API while letting the local host serve executable pages. This proves snapshot reuse and clear stale labels. Fully offline app-shell reload requires Person 1's service worker and remains unverified. The preview's localStorage menu fixture proves the UI's provider contract and pending/conflict feedback; operational IndexedDB durability and sync receipts require Person 1's implementation.
 

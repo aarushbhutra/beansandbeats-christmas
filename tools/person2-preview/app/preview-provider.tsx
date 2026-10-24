@@ -48,7 +48,7 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
     return () => { clearInterval(timer); window.removeEventListener("online", reconnect); window.removeEventListener("offline", disconnect); };
   }, [drain]);
   return <Person2StaffProvider value={{ role, loading, menu, sync: { online, pendingCount: pending.length, pendingEntityIds: pending.map(p => p.entityId), lastSyncedAt, conflicts: pending.filter(p => p.conflict).map(p => ({ entityId: p.entityId, message: p.conflict! })) }, refreshMenu, submitOperation: async operation => {
-    if (role !== "booth-lead") throw new Error("Choose the booth-lead preview role first.");
+    if (role !== "booth_lead") throw new Error("Choose the booth-lead preview role first.");
     const operationId = crypto.randomUUID();
     save([...operations.current, { ...operation, operationId }]);
     // Returning pending proves that the screen doesn't equate local acceptance with server sync.

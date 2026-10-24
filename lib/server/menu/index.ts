@@ -1,9 +1,9 @@
-import type { MenuChange, MenuItem, MenuResponse } from "../../client/contracts";
+import type { MenuChange, MenuItem, MenuResponse, StaffRole, Temperature } from "../../client/contracts";
 
 export class HandlerError extends Error {
   constructor(public status: number, public code: string, message: string) { super(message); }
 }
-export interface StaffPrincipal { id: string; role: "barista" | "booth-lead" }
+export interface StaffPrincipal { id: string; role: StaffRole }
 export interface MenuRepository {
   read(includeInactive: boolean): Promise<MenuResponse>;
   /** Atomic compare-and-swap in Person 1's database, with revision increment. */
@@ -16,7 +16,7 @@ export interface MenuDependencies {
 }
 export function requireLead(actor: StaffPrincipal | null): StaffPrincipal {
   if (!actor) throw new HandlerError(401, "UNAUTHENTICATED", "Sign in with a booth-lead account.");
-  if (actor.role !== "booth-lead") throw new HandlerError(403, "FORBIDDEN", "Only booth leads can access this action.");
+  if (actor.role !== "booth_lead") throw new HandlerError(403, "FORBIDDEN", "Only booth leads can access this action.");
   return actor;
 }
 export function apiError(error: unknown): Response {
@@ -40,16 +40,18 @@ export function validateMenuChange(value: unknown): MenuChange {
   if (Object.keys(v).some(key => !allowed.includes(key))) throw new HandlerError(400, "INVALID_INPUT", "Unexpected menu fields.");
   if (!Number.isSafeInteger(v.priceCents) || (v.priceCents as number) < 0 || (v.priceCents as number) > 100000) throw new HandlerError(400, "INVALID_INPUT", "Price must be whole cents between $0 and $1,000.");
   if (typeof v.soldOut !== "boolean" || typeof v.active !== "boolean") throw new HandlerError(400, "INVALID_INPUT", "Active and sold-out values must be boolean.");
-  return { name: text(v.name, "Name"), priceCents: v.priceCents as number, allowedMilk: choices(v.allowedMilk, "Milk"), allowedTemperatures: choices(v.allowedTemperatures, "Temperature"), soldOut: v.soldOut, active: v.active };
+  const temperatures = choices(v.allowedTemperatures, "Temperature");
+  if (temperatures.some(value => value !== "hot" && value !== "iced")) throw new HandlerError(400, "INVALID_INPUT", "Temperature options must be hot and/or iced.");
+  return { name: text(v.name, "Name"), priceCents: v.priceCents as number, allowedMilk: choices(v.allowedMilk, "Milk"), allowedTemperatures: temperatures as Temperature[], soldOut: v.soldOut, active: v.active };
 }
 export function createMenuHandlers(deps: MenuDependencies) {
   return {
     get: async (request: Request): Promise<Response> => {
       try {
         const actor = await deps.authenticate(request);
-        const menu = await deps.repository.read(actor?.role === "booth-lead");
+        const menu = await deps.repository.read(actor?.role === "booth_lead");
         // Defense in depth if a repository accidentally returns inactive entries to a public request.
-        return Response.json({ ...menu, items: actor?.role === "booth-lead" ? menu.items : menu.items.filter(item => item.active) }, { headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" } });
+        return Response.json({ ...menu, items: actor?.role === "booth_lead" ? menu.items : menu.items.filter(item => item.active) }, { headers: { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" } });
       } catch (error) { return apiError(error); }
     },
     patch: async (request: Request, id: string): Promise<Response> => {

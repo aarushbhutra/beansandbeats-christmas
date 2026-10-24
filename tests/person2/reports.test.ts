@@ -13,8 +13,8 @@ test("quantities, every lifecycle status, cancellations, historic prices and int
   const result = calculateDailyReport(orders, "2026-11-26", devices, now);
   assert.deepEqual([result.cups, result.totalCents, result.orderCount], [7, 2430, 4]);
   assert.deepEqual([result.cancelledCups, result.cancelledTotalCents, result.cancelledOrders], [2, 1200, 1]);
-  assert.equal(result.lines[0].unitPriceCents, 600); // live menu is 650
-  assert.equal(result.reconciliation.complete, true);
+  assert.equal(result.rows[0].unitPriceCents, 600); // live menu is 650
+  assert.equal(result.reconciliationDetails.complete, true);
   assert.equal(JSON.stringify(orders), before);
 });
 test("SGT midnight and late sync preserve the assigned event day", () => {
@@ -32,13 +32,13 @@ test("fractional dollar sums do not drift and multiple lines are counted", () =>
 });
 test("empty day has zero totals and no invented lines", () => {
   const r = calculateDailyReport(fixtureOrders(), "2026-11-28", devices, now);
-  assert.deepEqual([r.cups, r.totalCents, r.lines.length], [0, 0, 0]);
+  assert.deepEqual([r.cups, r.totalCents, r.rows.length], [0, 0, 0]);
 });
 test("unknown, stale, pending and future device watermarks cannot imply reconciliation", () => {
   for (const ds of [[], [{ ...devices[0], pendingOperations: null }], [{ ...devices[0], pendingOperations: 1 }], [{ ...devices[0], lastSeenAt: null }], [{ ...devices[0], lastSeenAt: "2026-11-26T03:58:59Z" }], [{ ...devices[0], lastSeenAt: "2026-11-27T04:00:00Z" }]]) {
     const result = calculateDailyReport(fixtureOrders(), "2026-11-26", ds, now);
-    assert.equal(result.reconciliation.complete, false);
-    assert.ok(result.reconciliation.warnings.length);
+    assert.equal(result.reconciliationDetails.complete, false);
+    assert.ok(result.reconciliationDetails.warnings.length);
   }
 });
 test("invalid dates, including impossible calendar days, are rejected", () => {
@@ -54,9 +54,10 @@ test("mismatched snapshot totals and duplicate records fail instead of exporting
 test("CSV uses the same snapshots and explicitly excludes cancelled amounts", () => {
   const r = calculateDailyReport(fixtureOrders(), "2026-11-26", devices, now);
   const csv = reportCsv(r);
-  assert.equal(csv.split("\r\n").length, r.lines.length + 2);
-  assert.match(csv, /2,6\.00,12\.00,"queued",true,true/);
-  assert.match(csv, /2,6\.00,12\.00,"cancelled",false,true/);
+  assert.equal(csv.split("\r\n").length, r.rows.length + 2);
+  assert.match(csv, /2,600,1200,"queued"/);
+  assert.match(csv, /2,600,1200,"cancelled"/);
+  assert.ok(csv.includes("eventDay,publicNumber,item,milk,temperature,quantity,unitPriceCents,lineTotalCents,status"));
   assert.ok(!csv.includes("Jamie")); assert.ok(!csv.includes("token"));
   assert.ok(csv.includes(`"'=HYPERLINK(""https://example.invalid"",""drink"")"`));
 });

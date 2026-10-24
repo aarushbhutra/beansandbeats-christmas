@@ -1,49 +1,23 @@
-/** Person 2 boundary types. Person 1 can satisfy these structurally from lib/contracts.ts. */
+/** Shared entities are re-exported; extra envelopes contain Person 2 presentation/freshness data. */
+import type { DailyReport as SharedDailyReport, GuestStatus, MenuItem as SharedMenuItem, Order, OrderItem, OrderStatus as SharedOrderStatus, ReadyEntry, ReportRow, Role } from "../contracts";
+export type { Temperature } from "../contracts";
 export const ORDER_STATUSES = ["queued", "making", "ready", "collected", "cancelled"] as const;
-export type OrderStatus = (typeof ORDER_STATUSES)[number];
-export type StaffRole = "barista" | "booth-lead";
-export interface ItemSnapshot {
-  menuItemId: string;
-  nameSnapshot: string;
-  unitPriceCentsSnapshot: number;
-  quantity: number;
-  milk: string;
-  temperature: string;
-}
-export interface SalesOrder {
-  id: string;
-  publicNumber: string;
-  eventDay: string;
+export type OrderStatus = SharedOrderStatus;
+export type StaffRole = Role;
+export type ItemSnapshot = OrderItem;
+export type SalesOrder = Pick<Order, "id" | "publicNumber" | "eventDay" | "totalCents" | "status" | "createdAtDevice" | "revision"> & {
   items: readonly ItemSnapshot[];
-  totalCents: number;
-  status: OrderStatus;
-  createdAtDevice: string;
   receivedAtServer: string;
   updatedAtServer: string;
-  revision: number;
-}
+};
 /** Deliberately excludes names, totals, internal IDs, device IDs and token material. */
-export interface GuestOrder {
-  publicNumber: string;
-  items: readonly Pick<ItemSnapshot, "nameSnapshot" | "quantity" | "milk" | "temperature">[];
-  status: OrderStatus;
-  updatedAtServer: string;
-}
+export type GuestOrder = GuestStatus;
 export interface GuestResponse { order: GuestOrder; syncedAt: string }
 export interface ReadyResponse {
-  orders: readonly { publicNumber: string; firstName: string }[];
+  orders: readonly ReadyEntry[];
   syncedAt: string;
 }
-export interface MenuItem {
-  id: string;
-  name: string;
-  priceCents: number;
-  allowedMilk: readonly string[];
-  allowedTemperatures: readonly string[];
-  soldOut: boolean;
-  active: boolean;
-  revision: number;
-}
+export type MenuItem = SharedMenuItem;
 export type MenuChange = Omit<MenuItem, "id" | "revision">;
 export interface MenuResponse { items: readonly MenuItem[]; revision: number; syncedAt: string }
 export interface DeviceFreshness {
@@ -52,30 +26,16 @@ export interface DeviceFreshness {
   pendingOperations: number | null;
   lastSeenAt: string | null;
 }
-export interface ReportLine {
-  day: string;
-  orderNumber: string;
-  item: string;
-  milk: string;
-  temperature: string;
-  quantity: number;
-  unitPriceCents: number;
-  lineTotalCents: number;
-  status: OrderStatus;
-}
-export interface DailyReport {
-  day: string;
+export type ReportLine = ReportRow;
+export interface DailyReport extends SharedDailyReport {
   generatedAt: string;
   definition: string;
   includedStatuses: readonly OrderStatus[];
   orderCount: number;
-  cups: number;
-  totalCents: number;
   cancelledOrders: number;
   cancelledCups: number;
   cancelledTotalCents: number;
-  lines: readonly ReportLine[];
-  reconciliation: { complete: boolean; warnings: readonly string[]; devices: readonly DeviceFreshness[] };
+  reconciliationDetails: { complete: boolean; warnings: readonly string[]; devices: readonly DeviceFreshness[] };
 }
 export interface MenuOperation {
   kind: "updateMenu";
@@ -99,4 +59,6 @@ export interface StaffBridge {
   sync: SyncState;
   submitOperation: SubmitOperation;
   refreshMenu: () => Promise<void>;
+  /** Current Supabase staff session token; never a service-role credential. */
+  getAccessToken?: () => Promise<string | null>;
 }

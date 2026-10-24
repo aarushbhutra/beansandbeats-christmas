@@ -30,7 +30,7 @@ export function calculateDailyReport(orders: readonly SalesOrder[], day: string,
       const unitPriceCents = whole(item.unitPriceCentsSnapshot, "price");
       const lineTotalCents = whole(quantity * unitPriceCents, "line total");
       orderCups = add(orderCups, quantity); orderTotal = add(orderTotal, lineTotalCents);
-      lines.push({ day, orderNumber: order.publicNumber, item: item.nameSnapshot, milk: item.milk, temperature: item.temperature, quantity, unitPriceCents, lineTotalCents, status: order.status });
+      lines.push({ eventDay: day, publicNumber: order.publicNumber, item: item.nameSnapshot, milk: item.milk, temperature: item.temperature, quantity, unitPriceCents, lineTotalCents, status: order.status });
     }
     if (whole(order.totalCents, "order total") !== orderTotal) throw new HandlerError(500, "INVALID_REPORT_DATA", "Stored order total differs from its immutable item snapshots.");
     if (order.status === "cancelled") { cancelledOrders++; cancelledCups = add(cancelledCups, orderCups); cancelledTotalCents = add(cancelledTotalCents, orderTotal); }
@@ -44,6 +44,7 @@ export function calculateDailyReport(orders: readonly SalesOrder[], day: string,
     const seen = device.lastSeenAt ? Date.parse(device.lastSeenAt) : NaN;
     if (!Number.isFinite(seen) || now.getTime() - seen > 60000 || seen > now.getTime() + 5000) warnings.push(`Tablet ${device.prefix}: freshness is unknown or older than one minute.`);
   }
-  lines.sort((a, b) => a.orderNumber.localeCompare(b.orderNumber));
-  return { day, generatedAt: now.toISOString(), definition: SALES_DEFINITION, includedStatuses: INCLUDED_STATUSES, orderCount, cups, totalCents, cancelledOrders, cancelledCups, cancelledTotalCents, lines, reconciliation: { complete: !warnings.length, warnings, devices: devices.map(device => ({ ...device })) } };
+  lines.sort((a, b) => a.publicNumber.localeCompare(b.publicNumber));
+  const reconciliation = !warnings.length ? "complete" : devices.some(device => (device.pendingOperations ?? 0) > 0) ? "pending" : "unknown";
+  return { day, generatedAt: now.toISOString(), definition: SALES_DEFINITION, includedStatuses: INCLUDED_STATUSES, orderCount, cups, totalCents, cancelledOrders, cancelledCups, cancelledTotalCents, rows: lines, reconciliation, reconciliationDetails: { complete: !warnings.length, warnings, devices: devices.map(device => ({ ...device })) } };
 }

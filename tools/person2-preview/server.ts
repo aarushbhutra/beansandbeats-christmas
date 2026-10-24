@@ -22,7 +22,7 @@ async function serialized<T>(action: (state: State) => Promise<T> | T, save = fa
   return next;
 }
 async function authenticate(request: Request): Promise<StaffPrincipal | null> {
-  const role = request.headers.get("cookie")?.match(/(?:^|;\s*)p2-preview-role=(booth-lead|barista)(?:;|$)/)?.[1];
+  const role = request.headers.get("cookie")?.match(/(?:^|;\s*)p2-preview-role=(booth_lead|barista)(?:;|$)/)?.[1];
   return role ? { id: "preview-staff-only", role: role as StaffPrincipal["role"] } : null;
 }
 const menus = createMenuHandlers({ authenticate, repository: {
@@ -54,7 +54,7 @@ export async function previewRoute(request: Request): Promise<Response> {
     if (route === "/api/preview/session") {
       if (request.method === "GET") return json({ actor: await authenticate(request) });
       const { role } = await request.json();
-      if (!["barista", "booth-lead", "guest"].includes(role)) throw new HandlerError(400, "INVALID_INPUT", "Choose a preview role.");
+      if (!["barista", "booth_lead", "guest"].includes(role)) throw new HandlerError(400, "INVALID_INPUT", "Choose a preview role.");
       return Response.json({ ok: true }, { headers: { "Set-Cookie": `p2-preview-role=${role}; Path=/; HttpOnly; SameSite=Strict`, "Cache-Control": "no-store" } });
     }
     if (route === "/api/preview/state" && request.method === "GET") return serialized(state => json({ orders: state.orders.map(order => ({ publicNumber: order.publicNumber, firstName: order.firstName, status: order.status })), unknownDevice: state.unknownDevice }));
@@ -73,7 +73,7 @@ export async function previewRoute(request: Request): Promise<Response> {
       const operation = await request.json() as MenuOperation & { operationId: string };
       if (!/^[0-9a-f-]{36}$/i.test(operation.operationId)) throw new HandlerError(400, "INVALID_INPUT", "Operation ID required.");
       const actor = await authenticate(request);
-      if (actor?.role !== "booth-lead") throw new HandlerError(actor ? 403 : 401, "FORBIDDEN", "Choose the lead preview role.");
+      if (actor?.role !== "booth_lead") throw new HandlerError(actor ? 403 : 401, "FORBIDDEN", "Choose the lead preview role.");
       // Fixture receipt only. Production receipts and transactional sync belong to Person 1.
       return await serialized(async state => {
         if (state.receipts.includes(operation.operationId)) return json({ state: "acknowledged", operationId: operation.operationId });

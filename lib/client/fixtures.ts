@@ -4,10 +4,10 @@ import type { PublicAdapter } from "./adapters";
 export const FIXTURE_TOKEN = "demo_only_7c2b6f088fd943cab0e52ac000000001";
 export const FIXTURE_NOW = "2026-11-26T04:00:00.000Z";
 export const fixtureMenu: MenuItem[] = [
-  { id: "10000000-0000-4000-8000-000000000001", name: "White Christmas Latte", priceCents: 650, allowedMilk: ["Dairy", "Oat", "Soy"], allowedTemperatures: ["Hot", "Iced"], soldOut: false, active: true, revision: 2 },
-  { id: "10000000-0000-4000-8000-000000000002", name: "Midnight Cold Brew", priceCents: 550, allowedMilk: ["None", "Dairy", "Oat"], allowedTemperatures: ["Iced"], soldOut: false, active: true, revision: 1 },
-  { id: "10000000-0000-4000-8000-000000000003", name: "Spiced Chocolate", priceCents: 600, allowedMilk: ["Dairy", "Oat"], allowedTemperatures: ["Hot", "Iced"], soldOut: true, active: true, revision: 1 },
-  { id: "10000000-0000-4000-8000-000000000004", name: "Gingerbread Mocha", priceCents: 700, allowedMilk: ["Dairy", "Oat"], allowedTemperatures: ["Hot"], soldOut: false, active: false, revision: 1 },
+  { id: "10000000-0000-4000-8000-000000000001", name: "White Christmas Latte", priceCents: 650, allowedMilk: ["Dairy", "Oat", "Soy"], allowedTemperatures: ["hot", "iced"], soldOut: false, active: true, revision: 2 },
+  { id: "10000000-0000-4000-8000-000000000002", name: "Midnight Cold Brew", priceCents: 550, allowedMilk: ["None", "Dairy", "Oat"], allowedTemperatures: ["iced"], soldOut: false, active: true, revision: 1 },
+  { id: "10000000-0000-4000-8000-000000000003", name: "Spiced Chocolate", priceCents: 600, allowedMilk: ["Dairy", "Oat"], allowedTemperatures: ["hot", "iced"], soldOut: true, active: true, revision: 1 },
+  { id: "10000000-0000-4000-8000-000000000004", name: "Gingerbread Mocha", priceCents: 700, allowedMilk: ["Dairy", "Oat"], allowedTemperatures: ["hot"], soldOut: false, active: false, revision: 1 },
 ];
 export function fixtureOrders(): (SalesOrder & { firstName: string })[] {
   const definitions: { number: string; name: string; status: OrderStatus; price: number; qty: number; day: string; created: string }[] = [
@@ -18,10 +18,10 @@ export function fixtureOrders(): (SalesOrder & { firstName: string })[] {
     { number: "1126-A-005", name: "Sam", status: "cancelled", price: 600, qty: 2, day: "2026-11-26", created: "2026-11-26T02:04:00.000Z" },
     { number: "1127-A-001", name: "Noor", status: "collected", price: 20, qty: 2, day: "2026-11-27", created: "2026-11-26T16:00:00.000Z" },
   ];
-  return definitions.map((v, index) => ({ id: `20000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, publicNumber: v.number, firstName: v.name, eventDay: v.day, items: [{ menuItemId: fixtureMenu[index === 1 ? 1 : 0].id, nameSnapshot: index === 1 ? "Midnight Cold Brew" : index === 3 ? '=HYPERLINK("https://example.invalid","drink")' : "White Christmas Latte", unitPriceCentsSnapshot: v.price, quantity: v.qty, milk: index === 1 ? "None" : "Oat", temperature: index === 1 ? "Iced" : "Hot" }], totalCents: v.price * v.qty, status: v.status, revision: 1, createdAtDevice: v.created, receivedAtServer: v.created, updatedAtServer: v.created }));
+  return definitions.map((v, index) => ({ id: `20000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, publicNumber: v.number, firstName: v.name, eventDay: v.day, items: [{ menuItemId: fixtureMenu[index === 1 ? 1 : 0].id, nameSnapshot: index === 1 ? "Midnight Cold Brew" : index === 3 ? '=HYPERLINK("https://example.invalid","drink")' : "White Christmas Latte", unitPriceCentsSnapshot: v.price, quantity: v.qty, milk: index === 1 ? "None" : "Oat", temperature: index === 1 ? "iced" : "hot" }], totalCents: v.price * v.qty, status: v.status, revision: 1, createdAtDevice: v.created, receivedAtServer: v.created, updatedAtServer: v.created }));
 }
 export function asGuest(order: SalesOrder): GuestOrder {
-  return { publicNumber: order.publicNumber, items: order.items.map(item => ({ nameSnapshot: item.nameSnapshot, quantity: item.quantity, milk: item.milk, temperature: item.temperature })), status: order.status, updatedAtServer: order.updatedAtServer };
+  return { publicNumber: order.publicNumber, items: order.items.map(item => ({ nameSnapshot: item.nameSnapshot, quantity: item.quantity, milk: item.milk, temperature: item.temperature })), status: order.status, updatedAt: order.updatedAtServer };
 }
 /** Explicit test adapter only; production screens default to HTTP. Same interface, no implicit fallback. */
 export function createMockPublicAdapter(initial = fixtureOrders()): PublicAdapter & { setStatus(index: number, status: OrderStatus): void; setOffline(value: boolean): void } {

@@ -13,7 +13,16 @@ test("guest token appears only in Authorization, never a request URL", async () 
 });
 test("fragment tokens require a high-entropy-compatible shape", () => {
   assert.equal(tokenFromFragment(`#token=${FIXTURE_TOKEN}`), FIXTURE_TOKEN);
+  assert.equal(tokenFromFragment(`#${"ab".repeat(32)}`), "ab".repeat(32));
   for (const value of ["", "#token=1", "#token=<script>", "?token=" + FIXTURE_TOKEN]) assert.equal(tokenFromFragment(value), null);
+});
+test("adapters normalize the published persisted guest, ready and menu response shapes", async () => {
+  const date = new Date().toUTCString();
+  const adapter = createHttpAdapters((async url => Response.json(String(url).includes("guest") ? { publicNumber: "1126-A-001", status: "ready", updatedAt: date, items: [] } : String(url).includes("ready") ? { orders: [], updatedAt: date } : { items: [{ revision: 3 }] }, { headers: { Date: date } })) as typeof fetch);
+  assert.equal((await adapter.guest(FIXTURE_TOKEN)).order.publicNumber, "1126-A-001");
+  assert.equal((await adapter.guest(FIXTURE_TOKEN)).syncedAt, date);
+  assert.equal((await adapter.ready()).syncedAt, date);
+  assert.equal((await adapter.menu()).revision, 3);
 });
 test("HTTP failures preserve structured API codes and sanitize non-JSON failures", async () => {
   const adapter = createHttpAdapters((async () => Response.json({ error: { code: "NOT_FOUND", message: "Unavailable" } }, { status: 404 })) as typeof fetch);

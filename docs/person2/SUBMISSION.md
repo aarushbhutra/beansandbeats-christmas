@@ -9,7 +9,8 @@ Owner of Person 2 modules and these materials: Ayushman (`ayushman-2008`). Dates
 - [x] Six-screen wireframes with ownership boundaries.
 - [x] One-page technical PDF describing the implementation and remaining dependencies.
 - [x] Labelled three-minute Person 2 preview walkthrough, with reproducible recorder.
-- [ ] Person 1 publishes scaffold, operational auth/outbox/PWA and database repositories.
+- [x] Merge Person 1's initial scaffold and reuse its shared types.
+- [ ] Person 1 completes operational auth/outbox/PWA and database repositories.
 - [ ] Integrate route wiring, shared contracts/provider and persisted production data.
 - [ ] Real phone QR scan and actual tablet/large-display checks, including sound enabled/disabled, locked and muted phones.
 - [ ] Validate lost acknowledgements, exactly-once order sync, conflict resolution and cached offline app-shell reloads.

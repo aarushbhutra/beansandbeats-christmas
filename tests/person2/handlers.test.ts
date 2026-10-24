@@ -4,7 +4,7 @@ import { fixtureMenu, fixtureOrders, FIXTURE_NOW } from "../../lib/client/fixtur
 import { createMenuHandlers, validateMenuChange, type StaffPrincipal } from "../../lib/server/menu";
 import { createReportHandlers } from "../../lib/server/reports";
 
-const lead: StaffPrincipal = { id: "lead", role: "booth-lead" };
+const lead: StaffPrincipal = { id: "lead", role: "booth_lead" };
 const barista: StaffPrincipal = { id: "barista", role: "barista" };
 const { id, revision, ...change } = fixtureMenu[0];
 function request(body: unknown) { return new Request("https://example.invalid/api/lead/menu/" + id, { method: "PATCH", body: JSON.stringify(body) }); }
@@ -28,7 +28,7 @@ test("revision conflicts and invalid updates never silently overwrite", async ()
   assert.equal(writes, 1);
 });
 test("menu input rejects unknown fields, invalid prices, empty/duplicate modifier options", () => {
-  for (const value of [{ ...change, role: "booth-lead" }, { ...change, priceCents: -1 }, { ...change, priceCents: 100001 }, { ...change, allowedMilk: [] }, { ...change, allowedMilk: ["Oat", "oat"] }, { ...change, active: "yes" }, { ...change, name: "\r\n" }]) assert.throws(() => validateMenuChange(value));
+  for (const value of [{ ...change, role: "booth_lead" }, { ...change, priceCents: -1 }, { ...change, priceCents: 100001 }, { ...change, allowedMilk: [] }, { ...change, allowedMilk: ["Oat", "oat"] }, { ...change, active: "yes" }, { ...change, name: "\r\n" }]) assert.throws(() => validateMenuChange(value));
   assert.equal(validateMenuChange({ ...change, priceCents: 0 }).priceCents, 0);
 });
 test("report and CSV deny unauthorized access before reading private snapshots", async () => {
@@ -45,7 +45,8 @@ test("JSON and CSV share report definition and protect incomplete exports", asyn
   const response = await h.csv(new Request("https://example.invalid/api/lead/reports.csv?day=2026-11-26"));
   assert.equal(response.headers.get("x-reconciliation-complete"), "false");
   assert.equal(response.headers.get("cache-control"), "private, no-store");
-  assert.match(await response.text(), /,true,false\r\n/);
+  assert.match(response.headers.get("content-disposition")!, /-provisional\.csv/);
+  assert.match(await response.text(), /,600,1200,"queued"/);
   assert.equal((await h.json(new Request("https://example.invalid/api/lead/reports?day=2026-11-31"))).status, 400);
 });
 test("unexpected repository errors do not leak secrets through API messages", async () => {

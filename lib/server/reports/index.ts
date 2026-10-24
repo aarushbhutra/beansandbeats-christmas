@@ -18,7 +18,7 @@ export function createReportHandlers(deps: ReportDependencies) {
       const report = calculateDailyReport(snapshot.orders, day, snapshot.devices, deps.now?.() ?? new Date());
       const headers = { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" };
       if (!csv) return Response.json(report, { headers });
-      return new Response(reportCsv(report), { headers: { ...headers, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="beans-and-beats-${day}.csv"`, "X-Reconciliation-Complete": String(report.reconciliation.complete), "X-Content-Type-Options": "nosniff" } });
+      return new Response(reportCsv(report), { headers: { ...headers, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="beans-and-beats-${day}${report.reconciliation === "complete" ? "" : "-provisional"}.csv"`, "X-Reconciliation-Complete": String(report.reconciliation === "complete"), "X-Content-Type-Options": "nosniff" } });
     } catch (error) { return apiError(error); }
   };
   return { json: handle(false), csv: handle(true) };

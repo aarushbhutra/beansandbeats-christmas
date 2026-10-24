@@ -81,7 +81,7 @@ test("lead reports show known totals, day boundaries and downloadable CSV", asyn
   await expect(page.getByText("$24.30", { exact: true })).toBeVisible();
   await expect(page.getByRole("main").getByRole("alert")).toContainText("Tablet B");
   const download = page.waitForEvent("download"); await page.getByRole("button", { name: "Export daily CSV", exact: false }).click();
-  expect((await download).suggestedFilename()).toBe("beans-and-beats-2026-11-26.csv");
+  expect((await download).suggestedFilename()).toBe("beans-and-beats-2026-11-26-provisional.csv");
   await page.getByLabel("Event day · SGT").fill("2026-11-27"); await expect(page.getByText("$0.40", { exact: true }).first()).toBeVisible();
 });
 test("barista cannot use lead screens or report/menu write APIs", async ({ page, context }) => {

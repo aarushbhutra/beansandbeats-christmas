@@ -13,7 +13,7 @@ async function main() {
   const api = await request.newContext({ baseURL });
   await api.post("/api/preview/reset");
   const shots = await browser.newContext({ baseURL, viewport: { width: 1280, height: 960 } });
-  await shots.request.post("/api/preview/session", { data: { role: "booth-lead" } });
+  await shots.request.post("/api/preview/session", { data: { role: "booth_lead" } });
   const shot = await shots.newPage();
   await shot.setViewportSize({ width: 390, height: 1000 });
   await shot.goto(`/guest#token=${FIXTURE_TOKEN}`);
@@ -36,7 +36,7 @@ async function main() {
 
   await api.post("/api/preview/reset");
   const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 900 }, recordVideo: { dir: path.join(process.cwd(), "test-results", "recording"), size: { width: 1280, height: 900 } } });
-  await context.request.post("/api/preview/session", { data: { role: "booth-lead" } });
+  await context.request.post("/api/preview/session", { data: { role: "booth_lead" } });
   const page = await context.newPage();
   const video = page.video()!;
   const start = Date.now();

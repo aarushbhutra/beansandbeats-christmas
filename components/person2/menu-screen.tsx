@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
-import type { MenuChange, MenuItem, StaffBridge } from "../../lib/client/contracts";
+import type { MenuChange, MenuItem, StaffBridge, Temperature } from "../../lib/client/contracts";
 import { money } from "../../lib/client/format";
 import { useStaffBridge } from "../../lib/client/staff-bridge";
 import { Freshness, Shell, StaffGate } from "./ui";
@@ -32,7 +32,8 @@ function MenuCard({ item, bridge }: { item: MenuItem; bridge: StaffBridge }) {
     const allowedTemperatures = draft.temperatures.split(",").map(value => value.trim()).filter(Boolean);
     if (!draft.name.trim() || draft.name.trim().length > 80 || priceCents > 100000) { setError("Use a name up to 80 characters and a price no higher than $1,000."); return; }
     if ([allowedMilk, allowedTemperatures].some(values => !values.length || values.length > 12 || new Set(values.map(v => v.toLowerCase())).size !== values.length || values.some(value => value.length > 80))) { setError("Give each modifier 1–12 unique options, each no longer than 80 characters."); return; }
-    const payload: MenuChange = { name: draft.name.trim(), priceCents, allowedMilk, allowedTemperatures, soldOut: draft.soldOut, active: draft.active };
+    if (allowedTemperatures.some(value => value !== "hot" && value !== "iced")) { setError("Use hot and/or iced as temperature options."); return; }
+    const payload: MenuChange = { name: draft.name.trim(), priceCents, allowedMilk, allowedTemperatures: allowedTemperatures as Temperature[], soldOut: draft.soldOut, active: draft.active };
     setSaving(true);
     try {
       const receipt = await bridge.submitOperation({ kind: "updateMenu", entityId: item.id, expectedRevision: baseline.revision, payload });
@@ -63,5 +64,5 @@ function Editor({ bridge }: { bridge: StaffBridge }) {
 }
 export function MenuScreen() {
   const bridge = useStaffBridge();
-  return <Shell section="menu">{!bridge || bridge.loading || bridge.role !== "booth-lead" ? <StaffGate configured={!!bridge} loading={bridge?.loading} role={bridge?.role}/> : <Editor bridge={bridge}/>}</Shell>;
+  return <Shell section="menu">{!bridge || bridge.loading || bridge.role !== "booth_lead" ? <StaffGate configured={!!bridge} loading={bridge?.loading} role={bridge?.role}/> : <Editor bridge={bridge}/>}</Shell>;
 }
