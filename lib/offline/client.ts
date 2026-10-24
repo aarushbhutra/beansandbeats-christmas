@@ -4,7 +4,8 @@ import type {SyncOperation, SyncState} from "../contracts";
 import {db} from "./db";
 export function useMenu() { return useLiveQuery(() => db.menu.toArray(), [], []); }
 export function useOrders() { return useLiveQuery(() => db.orders.toArray(), [], []); }
-// Day-one durable enqueue only. Transport/replay and conflict resolution are the next milestone.
+// Low-level legacy enqueue. Use createLocalOrder/advanceLocalOrder for device-counter-safe writes.
+// updateMenu remains reserved until the second contributor integrates its server handler.
 export async function submitOperation(operation: SyncOperation): Promise<void> {
  await db.transaction("rw", db.orders, db.outbox, async () => {
   if (await db.outbox.get(operation.operationId)) return;
