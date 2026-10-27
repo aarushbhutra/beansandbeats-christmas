@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./tests/offline',workers:1,timeout:45000,use:{baseURL:'http://127.0.0.1:3300',serviceWorkers:'allow',launchOptions:{executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox','--disable-dev-shm-usage'],env:{...process.env,XDG_CONFIG_HOME:'/tmp/beansandbeats-browser-config',XDG_CACHE_HOME:'/tmp/beansandbeats-browser-cache'}}},webServer:{command:'pnpm start --port 3300',url:'http://127.0.0.1:3300',reuseExistingServer:false,timeout:30000}});

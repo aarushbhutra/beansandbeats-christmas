@@ -1,4 +1,5 @@
 "use client";
+import {tabletFetch} from "./network";
 import {db} from "./db";
 import {toSharedMenuOperation} from "../client/shared-operation";
 import type {MenuOperation,MenuResponse} from "../client/contracts";
@@ -15,7 +16,7 @@ export async function enqueueMenuIntent(intent:MenuOperation){
  return {operationId,state:"pending" as const};
 }
 export async function refreshCachedMenu(token:string):Promise<MenuResponse>{
- const response=await fetch("/api/menu",{cache:"no-store",headers:{Authorization:`Bearer ${token}`}});if(!response.ok)throw new Error("Menu unavailable");const body:MenuResponse=await response.json();
+ const response=await tabletFetch("/api/menu",{cache:"no-store",headers:{Authorization:`Bearer ${token}`}});if(!response.ok)throw new Error("Menu unavailable");const body:MenuResponse=await response.json();
  await db.transaction("rw",db.menu,db.outbox,async()=>{const pending=new Set((await db.outbox.toArray()).filter(r=>r.operation.kind==="updateMenu").map(r=>r.operation.entityId));
  for(const item of await db.menu.toArray())if(!pending.has(item.id))await db.menu.delete(item.id);
  for(const item of body.items)if(!pending.has(item.id))await db.menu.put(item);
