@@ -8,7 +8,7 @@ Browser coffee booth system for Christmas Together, Singapore, 26–29 November 
 
 Requires Node 22+ and pnpm 11.25.0 (pinned in `package.json`). Run `pnpm install --frozen-lockfile`, then `pnpm dev`. Production: `pnpm build`, then `pnpm start`. Checks: `pnpm typecheck` and `pnpm test`. No credentials are required for the scaffold pages. In the cloud workspace, add `--store-dir /workspace/.pnpm-store` to the install command because the home directory is not writable.
 
-Copy `.env.example` to `.env.local` and supply values through your local editor or hosting environment settings. Never commit `.env.local`. Supabase URL and publishable key may be public; the service-role key is server-only. No real credentials or test account passwords are included.
+Copy `.env.example` to `.env.local` and supply values through your local editor or hosting environment settings. Never commit `.env.local`. Supabase URL and publishable key may be public; the `sb_secret_...` key is server-only. No real credentials or test account passwords are included.
 
 ## Backend setup
 
@@ -51,3 +51,9 @@ Sign in at `/lead/menu` or `/lead/reports` using the same Supabase staff account
 Reports include all persisted orders for the chosen SGT event day and read their immutable item snapshots together with all registered devices in one database snapshot. Pending operation counts remain **unknown** until device watermark/heartbeat support is implemented. Consequently exports remain provisional; a recent server receipt alone does not establish full reconciliation. Recorded value is not proof of POS payment.
 
 The root `pnpm test` runs the shared and Person 2 unit/integration suites. The separate `tools/person2-preview` project has its own dependencies and checks and is excluded from the production app's TypeScript project; its source tests were not replaced or disabled. Hosted Supabase and real-device acceptance remain outstanding.
+
+### Modern Supabase API keys
+
+Use `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...` in the browser and `SUPABASE_SECRET_KEY=sb_secret_...` on the server. The server client and readiness checks use the same secret variable. The legacy `SUPABASE_SERVICE_ROLE_KEY` environment name is no longer used. Secret keys still use the elevated Postgres `service_role` role and bypass RLS; do not change database grants from `service_role` to a made-up `secret` role. All app staff routes continue verifying the user's session and membership before privileged access. Never put the secret in a `NEXT_PUBLIC_` variable, committed file, client bundle or chat.
+
+Cloud environment settings must be saved and applied to the running workspace before a process can read a newly added key. Vercel variables apply to Vercel deployments, not this workspace. Restart the app after configuration changes; rebuild if public variables changed. The secret key provides Data API/Auth admin access, not a Postgres connection string or a Supabase Management API token. Apply migrations through the SQL editor or a separately authenticated CLI.
