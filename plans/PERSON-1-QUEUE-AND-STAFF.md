@@ -66,3 +66,7 @@ Do not build payments, loyalty, SMS, or native apps. Do not promise cross-device
 ## Vertical slice implementation status
 
 Order entry, device counters, persistent QR tickets, staff sign-in, barista controls, durable outbox replay, transactional sync and guest/ready read APIs are implemented. Local tests use embedded PostgreSQL and simulated IndexedDB; production build is checked. Hosted Supabase validation, real browser persistence/phone tests, deployment and test logins remain outstanding until project access is supplied. See README for setup and limitations.
+
+## Lead integration status
+
+Menu/report handlers are wired to authenticated API routes and database functions. Lead pages share the staff session and an atomic, persistent menu outbox. The home page links all six modules. Shared tests include SQL role/revision/idempotency checks and menu refresh/reopen/acknowledgement checks; Person 2 unit tests run from the root command. Apply the third migration for hosted validation. Device watermark/heartbeat reporting, hosted tests and final event reconciliation remain pending.
