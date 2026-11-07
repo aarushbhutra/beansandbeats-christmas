@@ -1,13 +1,10 @@
 node_modules/
 .next/
-tools/person2-preview/.data/
-tools/person2-preview/test-results/
-tools/person2-preview/playwright-report/
 out/
+.data/
 .env*
 !.env.example
 *.tsbuildinfo
-
-public/sw.js
 playwright-report/
 test-results/
+.vercel

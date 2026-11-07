@@ -1,3 +1,8 @@
-import { ReadyScreen } from "../../components/person2/ready-screen";
-export const metadata = { title: "Ready for collection · Beans & Beats", robots: { index: false } };
-export default function ReadyPage() { return <ReadyScreen/>; }
+import type { Metadata } from "next";
+import { Board } from "./board";
+
+export const metadata: Metadata = { title: "ready to collect", robots: { index: false } };
+
+export default function ReadyPage() {
+  return <Board />;
+}

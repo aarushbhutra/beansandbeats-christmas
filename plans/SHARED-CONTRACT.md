@@ -1,5 +1,7 @@
 # Beans&Beats: shared architecture and delivery agreement
 
+> **Superseded architecture (7 Nov 2026).** The app was rebuilt as v2: own Postgres schema `bb` (any Postgres via `DATABASE_URL`, PGlite locally) instead of Supabase Auth/Data API, cookie sessions with `barista`/`lead` roles, batched idempotent sync (`POST /api/sync`) where conflicts consume their sequence, per-tablet ticket numbers (`MMDD-A-001`), Server-Sent Events for live views, and a beansnbeats.com-based design. The six modules, offline guarantees, privacy rules and acceptance gates below still apply. The current contract lives in `lib/domain/types.ts` and the README.
+
 Based on the hackathon brief supplied by Aarush. Team: Aarush + one friend. Suggested ownership: Aarush takes Plan 1, friend takes Plan 2; swap if your strengths suggest otherwise.
 
 ## Required outcome
