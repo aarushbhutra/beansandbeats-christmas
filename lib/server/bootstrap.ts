@@ -29,7 +29,7 @@ export async function bootstrap(db: Database, options: { env?: Env } = {}): Prom
       if (!account.password || account.password.length < 8) continue;
       await db.query(
         "insert into bb.staff(username, display_name, role, password_hash) values ($1, $2, $3, $4) on conflict (username) do nothing",
-        [account.username!.toLowerCase(), account.name, account.role, await hashPassword(account.password)],
+        [account.username!.toLowerCase(), account.name, account.role, await hashPassword(account.password.trim())],
       );
     }
   }

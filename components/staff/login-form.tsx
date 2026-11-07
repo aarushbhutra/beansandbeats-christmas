@@ -18,7 +18,7 @@ export function LoginForm({ onDone }: { onDone: (profile: LocalProfile) => void 
       onSubmit={async event => {
         event.preventDefault();
         setBusy(true); setError("");
-        try { onDone(await signIn(username, password)); }
+        try { onDone(await signIn(username.trim(), password.trim())); }
         catch (cause) { setError(cause instanceof ApiError ? cause.message : "Couldn't sign in."); setPassword(""); }
         finally { setBusy(false); }
       }}

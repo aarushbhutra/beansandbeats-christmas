@@ -30,7 +30,7 @@ export async function login(db: Database, input: { username: string; password: s
   if (failures >= MAX_FAILURES) throw new HttpError(429, "TOO_MANY_ATTEMPTS", `Too many attempts. Wait ${WINDOW_MINUTES} minutes or ask a booth lead.`);
 
   const [row] = await db.query<StaffRow>("select id, username, display_name, role, password_hash, active from bb.staff where username = $1", [username]);
-  const valid = await verifyPassword(input.password, row?.password_hash ?? DUMMY_HASH);
+  const valid = await verifyPassword(input.password.trim(), row?.password_hash ?? DUMMY_HASH);
   const success = Boolean(row && row.active && valid);
   for (const key of keys) await db.query("insert into bb.login_attempts(key, success) values ($1, $2)", [key, success]);
   if (!success) throw new HttpError(401, "INVALID_LOGIN", "That username and password don't match an active staff account.");

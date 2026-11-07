@@ -164,7 +164,7 @@ const staffInput = z.object({
   username: z.string().trim().toLowerCase().regex(/^[a-z0-9._-]{2,32}$/, "Usernames use 2–32 lowercase letters, numbers, dots, dashes or underscores."),
   displayName: z.string().trim().min(1).max(60),
   role: z.enum(["barista", "lead"]),
-  password: z.string().min(10, "Passwords need at least 10 characters.").max(200),
+  password: z.string().trim().min(10, "Passwords need at least 10 characters.").max(200),
 });
 
 export async function listStaff(db: Queryable): Promise<(StaffProfile & { active: boolean; createdAt: string; lastSeenAt: string | null })[]> {
@@ -189,7 +189,7 @@ export async function createStaff(db: Database, staff: Principal, body: unknown)
 export async function updateStaff(db: Database, staff: Principal, id: string, body: unknown) {
   const parsed = z.object({
     active: z.boolean().optional(), role: z.enum(["barista", "lead"]).optional(),
-    password: z.string().min(10, "Passwords need at least 10 characters.").max(200).optional(), displayName: z.string().trim().min(1).max(60).optional(),
+    password: z.string().trim().min(10, "Passwords need at least 10 characters.").max(200).optional(), displayName: z.string().trim().min(1).max(60).optional(),
   }).strict().safeParse(body);
   if (!parsed.success) throw new HttpError(400, "INVALID_STAFF", parsed.error.issues[0]?.message ?? "Check the account fields.");
   const change = parsed.data;
