@@ -199,3 +199,9 @@ tests/unit, tests/e2e
 ```
 
 `plans/` and `docs/person2/` hold the original hackathon plans and the earlier handoff material. This rewrite supersedes their architecture: see the note at the top of `plans/SHARED-CONTRACT.md`.
+
+## License
+
+Copyright (c) 2026 Aarush Bhutra and Ayushman Chaudhuri. All rights reserved.
+
+This project is proprietary, not open source. You may not use, copy, modify, distribute, host or deploy it, or build on it, without written permission from both copyright holders. Viewing and forking on GitHub are allowed only as far as the GitHub Terms of Service require. See [LICENSE](LICENSE) for the full terms.
