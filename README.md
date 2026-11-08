@@ -2,6 +2,47 @@
 
 **Live app:** https://beansandbeats-christmas.vercel.app · **Demo video:** pending · **Technical summary PDF:** pending
 
+**1. What we built**
+
+We built an order-management web app for the beans&beats charity café at Christmas Together 2026. It connects counter staff, baristas, guests and team leads, helping them follow each order from entry to collection.
+
+The app brings together six modules: order entry, a barista queue, guest order tracking, a public collection display, menu management and daily reporting. It also supports previously initialized tablets during Wi-Fi interruptions, an important requirement for a busy festival booth.
+
+**2. How it works**
+
+1. **Enter an order.** Counter staff select drinks, quantities and options such as iced preparation or oat milk. The app calculates the total and generates an order number and guest QR code. Payment takes place separately through the organiser’s POS.
+
+2. **Save locally first.** The tablet saves the order and its pending changes in IndexedDB before confirming success. A service worker caches the app’s pages so previously initialized tablets can continue operating offline.
+
+3. **Synchronize safely.** When connected, tablets send pending changes to the server in sequence. Unique operation identifiers prevent retries from creating duplicate orders. Conflicting changes are flagged for review, while order statuses cannot move backwards.
+
+4. **Prepare and collect.** Baristas advance orders through queued, making, ready and collected. Guests scan their order QR to view progress on their phones. When ready, the guest page provides visual alerts, supported vibration and optional sound. Staff scan a pickup QR to locate the order and confirm collection.
+
+5. **Manage and report.** Leads can change prices, mark drinks sold out, manage staff and tablets, review synchronization issues and export daily reports. Orders preserve their original prices even after menu changes. Reports remain provisional while outstanding orders or unsynchronized tablets need attention.
+
+We used Next.js, React and TypeScript for the application, Dexie for tablet storage, PostgreSQL hosted on Neon for shared data, and Vercel for hosting. Server-Sent Events deliver live updates, while QR generation and scanning connect the counter, guest and pickup workflows.
+
+The system uses menu data, drink selections, quantities, first names, order statuses and timestamps. It does not request guest phone numbers or email addresses. No AI model is required during operation; pricing, synchronization and order handling follow explicit rules.
+
+**3. Results**
+
+We delivered all **six core modules** in one deployed application, with hosting and database infrastructure located in Singapore.
+
+The latest merged implementation records:
+
+- **17 passing unit and integration tests**, covering order progression, duplicate prevention, conflicting updates, pricing, reporting, authentication and data reset.
+- **Two browser tests**, covering offline order persistence and synchronization, plus access restrictions.
+- Successful offline recovery in the tested scenario: an order survived page reloads and synchronized as **one server order** after reconnection.
+- A guest ready alert arriving approximately **0.2 seconds** after the barista’s action in one documented live smoke test. This is an individual observation, not an average or performance guarantee.
+
+The festival is scheduled for **26–29 November 2026**, so event sales, customer adoption and time savings have not yet been measured.
+
+**4. Limitations and next steps**
+
+Offline tablets cannot see changes that other devices have not synchronized. Guests also receive only the latest synchronized status, and alerts require their tracking page to remain open. Payment totals represent recorded orders rather than verified payments.
+
+Our next steps are to run a realistic booth rehearsal, confirm the final menu and data-retention policy, test actual event devices, and measure order-entry time, preparation time, synchronization failures and pickup delays.
+
 The order system for the beans&beats charity café at Christmas Together, Singapore's largest indoor Christmas festival (26–29 November 2026). All six modules run in one installable web app. The design follows [beansnbeats.com](https://beansnbeats.com):
 
 - White canvas and `#1d1b1b` ink, in a Helvetica-style grotesk (the site uses Alte Haas Grotesk).
