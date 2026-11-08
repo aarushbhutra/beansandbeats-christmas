@@ -1,53 +1,160 @@
-# Beans&Beats · Christmas Together 2026
+# beans&beats · Christmas Together 2026
 
-Live app: pending · Demo video: pending · Technical summary PDF: pending
+**Live app:** https://beansandbeats-christmas.vercel.app · **Demo video:** pending · **Technical summary PDF:** pending
 
-Browser coffee booth system for Christmas Together, Singapore, 26–29 November 2026. This branch contains the order/barista vertical slice. It is under development and has not been validated against a hosted Supabase project.
+The order system for the beans&beats charity café at Christmas Together, Singapore's largest indoor Christmas festival (26–29 November 2026). All six modules run in one installable web app. The design follows [beansnbeats.com](https://beansnbeats.com):
 
-## Develop
+- White canvas and `#1d1b1b` ink, in a Helvetica-style grotesk (the site uses Alte Haas Grotesk).
+- Bold lowercase headings and black full-width section bars.
+- Black square buttons and 1px-bordered inputs.
+- A black footer and beans&beats' own logo and photography.
+- Orange only as the active-navigation underline, exactly as on the site.
 
-Requires Node 22+ and pnpm 11.25.0 (pinned in `package.json`). Run `pnpm install --frozen-lockfile`, then `pnpm dev`. Production: `pnpm build`, then `pnpm start`. Checks: `pnpm typecheck` and `pnpm test`. No credentials are required for the scaffold pages. In the cloud workspace, add `--store-dir /workspace/.pnpm-store` to the install command because the home directory is not writable.
+The guest page and ready board follow the organiser's monochrome mockups.
 
-Copy `.env.example` to `.env.local` and supply values through your local editor or hosting environment settings. Never commit `.env.local`. Supabase URL and publishable key may be public; the service-role key is server-only. No real credentials or test account passwords are included.
+| # | Module | Route | Who uses it |
+|---|---|---|---|
+| 01 | Order entry (tablet POS, multi-drink tickets, per-order QR) | `/orders` | barista / lead |
+| 02 | Bar queue (queued → on the decks → the drop) + camera **pickup scan** of the guest's QR → collected | `/barista` | barista / lead |
+| 03 | Guest live status + ready alert (flash, vibration, optional chime) + pickup QR | `/guest#<token>` | guest phone |
+| 04 | Public ready board (TV) | `/ready` | anyone |
+| 05 | Menu, prices, iced/milk surcharges, sold-out flags | `/lead/menu` | lead |
+| 06 | Daily cups/value report, CSV, day close-out | `/lead/reports` | lead |
 
-## Backend setup
+**Counter flow (confirmed with the organiser):**
+1. The guest orders at the counter and the barista keys the drink into `/orders`.
+2. The POS person keys in the total shown on the ticket. Payment is PayNow or card only, on the organiser's POS.
+3. The guest scans the QR on the tablet screen; there is no paper receipt.
+4. When the drink is ready, the guest page shows a pickup QR. The bar tablet's camera scans it (`scan pickup`), and one tap marks it collected.
 
-Create a Supabase project, then apply all SQL files in `supabase/migrations/` in filename order using its SQL editor or a configured Supabase CLI. The migrations have been exercised in embedded PostgreSQL, but not against a hosted project. It creates tables, constraints, immutable item snapshots, and default-deny row security.
+**Menu:** the database seeds Aden's WIP menu: espresso $3, americano $6, latte $8, flat white $8, pour-over $10. Iced is +$1 and oat milk is +$1. Black drinks have no milk choice. Surcharges are stored per menu revision, so old orders stay verifiable after price changes.
 
-Create barista and booth-lead users through Supabase Auth, then assign their UUIDs and roles in `staff_memberships` through an administrator session. Do not allow users to assign their own roles. `lib/server/auth.ts` verifies Bearer tokens and memberships server-side. Lead-only device registration endpoint and local activation helper are implemented but not connected to a hosted database. Staff sign-in, order/barista UI, transactional sync, and guest/ready read routes are now implemented. Never use a demo role selector as authorization.
+**Full manual + device test plan:** [docs/TESTING.md](docs/TESTING.md).
 
-## Ownership and handoff
+Leads also get `/lead` (live dashboard), `/lead/devices` (tablet registration, sync health, conflicts) and `/lead/team` (staff accounts). Payments stay on the organiser's POS: totals are recorded orders, not verified payments.
 
-Read [AGENTS.md](AGENTS.md), [shared agreement](plans/SHARED-CONTRACT.md), and [kickoff handoff](docs/OCTOBER-25-HANDOFF.md). Aarush owns infrastructure, order entry and barista queue; the friend owns guest/ready/menu/report modules. Do not start from an older scaffold before incorporating this branch.
+## Architecture
 
-## Deployment
+```
+ tablet (Next.js PWA)                         server (Next.js route handlers, Node)          Postgres (schema "bb")
+ ┌──────────────────────────────┐   POST /api/sync (batched, ordered, idempotent)   ┌────────────────────┐
+ │ IndexedDB (Dexie)            │ ───────────────────────────────────────────────▶ │ orders, items      │
+ │  orders · outbox · tickets   │   GET /api/staff/feed (authoritative snapshot)    │ sync_receipts      │
+ │  menu · issues · meta        │ ◀─────────────────────────────────────────────── │ menu + revisions   │
+ │ service worker: app shell    │   GET /api/staff/live  (SSE "something changed")  │ devices, staff     │
+ └──────────────────────────────┘ ◀─────────────────────────────────────────────── │ feed_state (seq)   │
+ guest phone ── GET /api/guest/live (SSE, token in Authorization header) ─────────▶ │ order_events, audit│
+ ready board ── GET /api/board/live (SSE, numbers + first names of ready orders) ──▶ └────────────────────┘
+```
 
-Proposed target: a Node-compatible Next.js host such as Vercel, connected to Supabase. Set environment variables securely, build with `pnpm build`, and deploy over HTTPS. Hosting account/project access has not been provided; nothing has been deployed. No test logins exist yet. Create accounts in your own Supabase Auth project; never add passwords to source control.
+- **Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Motion, Dexie (IndexedDB), Zod, the `postgres` driver and jsQR (camera pickup scanning). Locally, PGlite (embedded Postgres) runs the same SQL with zero setup.
+- **Storage:** with `DATABASE_URL` set, the app uses any Postgres 14+ (Neon, Supabase, RDS). Without it, it uses PGlite in `.data/pglite`. On a serverless host without `DATABASE_URL` it falls back to throwaway `/tmp` storage and shows a red "demo storage" warning to leads. Migrations run automatically on first request under an advisory lock (`lib/server/migrations.ts`). All tables live in the `bb` schema, so they never collide with existing tables in a shared database.
+- **Auth:** staff accounts in `bb.staff`, scrypt password hashes, random 256-bit session tokens stored as SHA-256 in `bb.sessions`, delivered as an `HttpOnly; SameSite=Lax; Secure` cookie (16 h). Mutations check `Origin`. Login is rate-limited per username and per IP (8 failures / 10 min). Roles: `barista`, `lead`; every route checks the role on the server.
+- **Live updates:** writers bump `bb.feed_state.seq` inside their transaction. One poller per server instance (1 s) fans out to every open Server-Sent-Events stream. Streams recycle every ~50 s; clients reconnect with backoff and also poll as a safety net.
 
-## Daily rollover and reset (design)
+### Sync protocol (the important part)
 
-Do not delete orders or reuse device prefixes. Before closing a day, reconcile every registered device's outbox, resolve conflicts and export the SGT day's report. Begin the new SGT event day while retaining history. Device storage loss requires fresh server registration with a new prefix. The executable reset/reconciliation workflow will be documented once sync and reports exist. Organizer retention/deletion policy is pending; a controlled personal-data purge must be designed separately from daily reset.
+1. **Durable first.** Creating or advancing an order is one IndexedDB transaction: order row, guest token, outbox operation and the device's sequence counter. The UI says "saved" only after commit.
+2. **Per-tablet numbering.** A lead registers each tablet once, online. It gets a letter (`A`, `B`, … `AA`). Order numbers are `MMDD-A-001`, counted per tablet per SGT day, so offline tablets never clash. The short form `A-001` is shown everywhere.
+3. **Ordered, idempotent replay.** Operations carry `opId` and a per-device `seq`. The server processes each in its own transaction under a device row lock. It writes a receipt, then advances `next_sequence`. A retried `opId` returns the original verdict (`duplicate`), so lost acknowledgements never double-count.
+4. **Conflicts never block the queue.** A refused change (for example, cancelling an already-collected order) is recorded as a `conflict` receipt and in `bb.sync_issues`. It consumes its sequence, and later changes keep flowing. Tablets show it in the sync drawer; leads see it under *tablets & sync*.
+5. **Forward-only lifecycle.** `queued → making → ready → collected` (`cancelled` from any open state). Moving to a stage the order already passed is a no-op, so racing tablets can't regress a status. Terminal states never reopen.
+6. **Offline sales against an old menu.** Every menu edit is snapshotted in `bb.menu_revisions`. An order is accepted if its items match *some* revision (the price the guest paid at the POS), and flagged `stale_menu` / `sold_out_at_sync` for review. Items matching no revision are rejected as tampered.
+7. **Gaps.** If a tablet lost local operations, the server reports a `gap` and pauses that tablet. A lead can explicitly *skip gap* on `/lead/devices`.
+8. **Reconciliation.** Each sync reports the tablet's remaining outbox size. A day's report is *provisional* until every active tablet has reported an empty outbox recently (or after the day ended) and every order is collected or cancelled.
 
-## Use the vertical slice
+## Run it locally
 
-For a development project, optionally apply `supabase/seed.sql` to add the fictional menu and station. Create staff accounts in Supabase Auth and grant one `booth_lead` membership through SQL/admin access. Set the three `.env.local` variables and rebuild/restart. At `/orders`, sign in as lead, register one device with a unique prefix and the station UUID, and refresh the menu. Registration initializes local persistent storage. The same tablet can subsequently sign in with a barista account.
+Requires Node 22+ and pnpm 11.25.0 (pinned in `package.json`; `npx pnpm@11.25.0 …` works if pnpm isn't installed).
 
-Save a drink with milk, temperature, quantity and first name. Its number, QR token, order and outbox operation are persisted atomically. `/barista` shows queued, making and ready orders. Foreground polling replays saved operations every five seconds while signed in and also on reconnect. The QR opens the integrated `/guest` screen. The public collection board is `/ready`. The API is `GET /api/guest/status` with a Bearer tracking token. `/api/ready` returns names/numbers only; `/api/menu` returns `{items}` and `/api/staff/orders?day=YYYY-MM-DD` returns `{orders}`. These read routes disable response caching.
+```bash
+pnpm install --frozen-lockfile
+pnpm setup:local      # writes .env.local with random first-run passwords and prints them
+pnpm dev              # http://localhost:3000
+```
 
-`POST /api/sync` accepts one typed operation per request and returns `{results, serverRevision}`. The server supports createOrder, advanceOrder, cancelOrder and updateMenu. Lead-only updateMenu now uses the same atomic receipt and device-sequence transaction. Every server operation locks its device, validates its next sequence, and commits order changes and acknowledgement together. An embedded PostgreSQL test exercises the SQL; a simulated IndexedDB test exercises local transactions and reopening.
+Sign in at `/login` as `lead` with the printed password. Go to **lead → tablets & sync → register**, then take orders at `/orders`. Open `/barista`, `/ready` and the guest QR in other windows. The sample menu is fictional; replace it under **lead → menu**.
 
-## Current limits
+The offline service worker is generated only in production builds. Real devices need **HTTPS** for the camera scanner and the service worker; use a Vercel deploy or a `cloudflared` tunnel (see docs/TESTING.md):
 
-Guest/ready screens are integrated. Lead menu controls and reports now share staff sign-in through `/lead`. First-ever loads require connectivity; no service worker is active yet, so app-shell offline reload is not available. A new local order must sync before its next change; one transition on a previously synced order may be saved offline, then must sync before another. Existing open tabs can save orders against cached menu data; stale-menu, revision and other server conflicts stop replay until a booth lead investigates. There is no automatic conflict reconciliation or safe discard/reset UI yet: preserve the tablet data and do not delete a blocked operation, because that creates a device-sequence gap. Do not use this version live at the event.
+```bash
+pnpm build && pnpm start
+```
 
-The IndexedDB database stores local names, operational data and guest tokens on the staff device. Use dedicated trusted tablets. Signing out stops server access but does not purge unsynced work; personal-data purge and retention controls remain pending. Samples are fictional and totals do not verify POS payments. Hosting and test accounts remain external prerequisites.
+## Checks
 
-## Lead module integration
+| Command | What it proves |
+|---|---|
+| `pnpm typecheck` | TypeScript, whole project |
+| `pnpm test` | 16 tests on real SQL (in-memory PGlite): full lifecycle with guest/board views, lost-ack replay, conflicts consuming sequences, two-tablet races without regression, stale-menu acceptance + flags, gaps + lead skip, revoked tablets, report totals/cancellations/reconciliation, name purge, login + rate limit, SGT day rollover, CSV formula escaping, iced/oat surcharge pricing, pickup-code parsing |
+| `TEST_DATABASE_URL=postgres://… DATABASE_POOL_MAX=1 pnpm test` | The same suite through the production `postgres` driver against a real Postgres. It drops and recreates the `bb` schema, so never point it at production. |
+| `PLAYWRIGHT_BASE_URL=https://… E2E_LEAD_PASSWORD=… E2E_BARISTA_PASSWORD=… pnpm test:e2e` | The browser suite against a deployed URL. It registers one test tablet; clear it afterwards with **lead → tablets → reset test data**. |
+| `pnpm build && pnpm test:e2e` | Chromium against a production server: a warm tablet goes offline, reloads from the cached shell, takes an order, advances it, reloads again with data intact, reconnects and syncs **exactly once**. It also checks barista vs lead vs anonymous access. Set `CHROMIUM_PATH` to use a system Chromium. |
 
-Apply `202610270001_lead_integration.sql` after the two earlier migrations. It adds an atomic menu compare-and-swap function, menu support to the existing sync transaction, and a consistent report snapshot function. Public and barista menu reads exclude inactive items; verified booth leads can see inactive entries. Lead PATCH, report JSON and CSV routes independently enforce server authorization.
+## Current deployment
 
-Sign in at `/lead/menu` or `/lead/reports` using the same Supabase staff account as order entry. A lead must register the tablet before saving durable menu changes. Pending edits survive IndexedDB reopen and are preserved when refreshing the server menu; acknowledged edits advance the menu revision, not an order revision. Barista sessions cannot replay menu mutations. An offline edit on one tablet is not visible to other disconnected tablets.
+- **Hosting:** Vercel project `clipcontext/beansandbeats-christmas`. Functions are pinned to `sin1` (Singapore).
+- **Database:** Neon Postgres in Singapore, connected through the Vercel Marketplace (sets `DATABASE_URL`).
+- **Deploying:** GitHub isn't connected, so deploy with `npx vercel@latest deploy --prod` from a clean checkout. `.vercelignore` keeps local data, `.env*` files and tests out of the upload.
+- **Health check:** `GET /api/health` should report `"storage":"postgres"`.
 
-Reports include all persisted orders for the chosen SGT event day and read their immutable item snapshots together with all registered devices in one database snapshot. Pending operation counts remain **unknown** until device watermark/heartbeat support is implemented. Consequently exports remain provisional; a recent server receipt alone does not establish full reconciliation. Recorded value is not proof of POS payment.
+## Deploy (Vercel + Postgres)
 
-The root `pnpm test` runs the shared and Person 2 unit/integration suites. The separate `tools/person2-preview` project has its own dependencies and checks and is excluded from the production app's TypeScript project; its source tests were not replaced or disabled. Hosted Supabase and real-device acceptance remain outstanding.
+1. Create a Postgres database. On Vercel: **Storage → Marketplace → Neon**, which sets `DATABASE_URL` automatically. A Supabase database also works: use its *connection pooling* URI.
+2. Set these environment variables for Production:
+   - `DATABASE_URL`
+   - `BOOTSTRAP_LEAD_USERNAME` / `BOOTSTRAP_LEAD_PASSWORD`
+   - `BOOTSTRAP_BARISTA_USERNAME` / `BOOTSTRAP_BARISTA_PASSWORD`: used once, only while the staff table is empty. Minimum 8 characters.
+   - `CRON_SECRET`: protects the daily name purge in `vercel.json`.
+   - optional: `NAME_RETENTION_MINUTES` (default 15), `SEED_SAMPLE_MENU=false`.
+3. Deploy. `vercel.json` installs with the frozen lockfile and runs `pnpm build`, which also generates `public/sw.js`.
+4. Open `/api/health`. It should report `"storage":"postgres"`. Sign in as the lead, then change the bootstrap passwords under **lead → team** or create named accounts.
+
+**Test logins for judges:** create a `barista` and a `lead` account on the deployed app. Share the credentials in the submission form, never in this repository.
+
+## Daily rollover and reset runbook
+
+Event days are SGT (`Asia/Singapore`). Nothing is deleted at rollover, and device letters and order numbers are never reused.
+
+1. **Before closing:** bring every booth tablet online and open it until its sync pill reads `synced`. Collect or cancel anything left on the bar queue.
+2. **Lead → reports:** check that the banner reads *reconciled*. Any warning names the tablet or order to fix.
+3. **Download the CSV.** Reconcile cups and totals with the organiser's POS. Cancelled rows are listed and excluded. Flagged rows were sold against an old menu.
+4. **Close the day.** This records who closed it, the totals and the open warnings (if you acknowledge them) in `bb.day_closures`. A late sync still appears in the report; re-close to update the record.
+5. **Next day:** at 00:00 SGT, tablets start numbering from `-001` under the new date. Nothing else is needed.
+
+**After test runs and the dry run, before 26 Nov:** use **lead → tablets → reset test data** (type `reset`). It deletes orders, tablet registrations and sync history, and keeps staff accounts and the menu; tablet letters start from A again. Other tablets show a "clear this tablet" banner; clear them and re-register. **For the live event, set `DISABLE_DATA_RESET=true`** in Vercel and redeploy, so nobody can wipe event data.
+6. **Lost or wiped tablet:** retire it in **tablets & sync** (its letter is never reused) and register the replacement (it gets a new letter). Never copy IndexedDB between devices.
+
+## Privacy and data handling (PDPA-minded, not a legal certification)
+
+- **First name only.** No phone or email. Names are shown on the ready board and to staff. They are deleted (`first_name = null`) 15 minutes after collection or cancellation, and all names from previous days are deleted. This runs on every sync (at most once a minute) and in a daily cron.
+- **Guest links** carry a 256-bit random token in the URL **fragment**, which is never sent in requests or logs. Only the SHA-256 hash is stored. The page sends the token in an `Authorization` header. Guest responses contain number, drinks, status, queue position and ETA only: no names, totals or internal IDs. Pages send `Referrer-Policy: no-referrer`.
+- **Board:** first names only while an order is ready. If its feed goes stale, it hides names ("check at counter"). Only numbers are cached in `sessionStorage`.
+- **Tablets** keep names, tokens and unsynced work in IndexedDB until synced and the day rolls over. Use dedicated booth tablets. The service worker never caches API responses or anything personal.
+- **CSV exports** contain no names or tokens. Text fields are quoted and formula-escaped.
+- **Audit log** (`bb.audit_log`) records sign-ins, menu edits, device and staff changes, exports and day closures. It never records passwords or tokens.
+- The retention periods above are proposals. Confirm them with the organiser.
+
+## Honest limits
+
+- First-ever load of each page needs a connection. Warm tablets reopen offline from the service worker; the e2e test covers this.
+- Offline tablets can't see each other's new orders. Guests away from the booth see the last synced status. Alerts need the guest's page open; there is no SMS or push.
+- Two offline tablets may both sell an item that was marked sold out elsewhere. The server accepts the sale at the price shown and flags it for review.
+- Live streams poll the database once a second per server instance. That is fine for a booth, but it is not tuned for festival-scale public traffic. The board and guest pages also poll every 12–15 s as a fallback.
+- Verified: unit/integration tests on PGlite, the Chromium e2e test, and an end-to-end API smoke run against a local production server. **Not yet verified:** a hosted Postgres deployment, real iPad/Android hardware, and real-venue Wi-Fi.
+
+## Repository map
+
+```
+app/                 pages (/, /login, /orders, /barista, /guest, /ready, /lead/*) and API route handlers
+components/brand     logo, vinyl, equaliser, marquee, snow
+components/staff     staff shell, sync pill + drawer, login form
+components/ui        modal, toasts, switch, stepper, notices, stats
+lib/domain           shared types, lifecycle/number/money rules, report calculation, CSV
+lib/server           db (Postgres/PGlite), migrations, auth, sync engine, live bus, lead services, maintenance
+lib/client           IndexedDB schema, durable outbox, sync engine, SSE client, hooks
+scripts              service-worker template + generator, local setup
+tests/unit, tests/e2e
+```
+
+`plans/` and `docs/person2/` hold the original hackathon plans and the earlier handoff material. This rewrite supersedes their architecture: see the note at the top of `plans/SHARED-CONTRACT.md`.

@@ -1,1 +1,96 @@
-:root{font-family:system-ui,sans-serif;color:#18392f;background:#f8f5eb}*{box-sizing:border-box}body{margin:0}header{padding:1.5rem 5%;background:#18392f;color:white;display:flex;justify-content:space-between;gap:1rem}header a{color:inherit;font-weight:800;text-decoration:none}main{max-width:1050px;margin:auto;padding:3rem 1.5rem}h1{font-size:clamp(2rem,5vw,3.8rem);line-height:1.1}p{line-height:1.7}nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}nav a{padding:1.5rem;border:1px solid #afbbac;border-radius:12px;color:inherit;text-decoration:none;background:white}a:focus-visible{outline:3px solid #a7442b;outline-offset:4px}.badge{color:#87361f;font-weight:700}small{display:block;line-height:1.6}.panel{background:white;border:1px solid #afbbac;border-radius:12px;padding:1.5rem;margin-block:1rem}form{display:flex;flex-wrap:wrap;gap:1rem;align-items:end}label{display:flex;flex-direction:column;gap:.4rem;flex:1 1 180px}input,select,button{font:inherit;min-height:48px;padding:.7rem;border:1px solid #889d90;border-radius:7px;max-width:100%}button{background:#18392f;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:default}.queue{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #a7442b;outline-offset:3px}[role=alert]{color:#87361f}
+@import "tailwindcss";
+
+/*
+ * Matches beansnbeats.com: white page, #1d1b1b ink, Helvetica-style grotesk ("Alte Haas Grotesk"),
+ * lowercase bold headings with tight tracking, black full-width section bars, black square buttons,
+ * 1px ink-bordered inputs with 4px radius, black footer. The accent orange is used exactly as on the
+ * site: only as the underline under the active navigation link.
+ */
+@theme {
+  --color-ink: #1d1b1b;
+  --color-paper: #ffffff;
+  --color-wash: #f4f4f3;
+  --color-line: #dddcda;
+  --color-mute: #6d6a69;
+  --color-dim: #a7a4a2;
+  --color-bad: #b42318;
+  --color-accent: #fa6105;
+
+  --font-sans: "Alte Haas Grotesk", "Helvetica Neue", Helvetica, var(--font-fallback), Arial, sans-serif;
+
+  --tracking-tightest: -0.06em;
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.02em;
+}
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; text-size-adjust: 100%; }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100svh;
+  }
+  :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+  ::selection { background: var(--color-ink); color: var(--color-paper); }
+  button, [role="button"] { cursor: pointer; touch-action: manipulation; }
+  button:disabled { cursor: not-allowed; }
+  input, select, textarea { font: inherit; letter-spacing: inherit; }
+}
+
+@layer components {
+  /* Headings: bold, lowercase, tight, as "our story" / "contact us" on the site. */
+  .h-display { font-weight: 700; letter-spacing: var(--tracking-tightest); line-height: 0.95; text-transform: lowercase; }
+  .h-title { font-weight: 700; letter-spacing: var(--tracking-tighter); line-height: 1.05; text-transform: lowercase; }
+  .label { font-size: 0.8125rem; font-weight: 700; letter-spacing: var(--tracking-tight); text-transform: lowercase; }
+  .muted { color: var(--color-mute); }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* The site's black full-width section bar ("brands we work with", "this season's playlist"). */
+  .bar { background: var(--color-ink); color: var(--color-paper); text-align: center; font-weight: 700; letter-spacing: var(--tracking-tighter); text-transform: lowercase; padding: 0.85rem 1rem; font-size: 1.35rem; line-height: 1.1; }
+
+  /* Buttons: the site's "send" (solid black) and "view more" (white with black border). */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 46px; padding: 0.7rem 1.5rem; font-weight: 700; letter-spacing: var(--tracking-tight); text-transform: lowercase; border: 1px solid var(--color-ink); transition: background-color .15s, color .15s, opacity .15s; user-select: none; }
+  .btn:disabled { opacity: 0.35; }
+  .btn-solid { background: var(--color-ink); color: var(--color-paper); }
+  .btn-solid:hover:not(:disabled) { background: #3a3737; }
+  .btn-outline { background: var(--color-paper); color: var(--color-ink); }
+  .btn-outline:hover:not(:disabled) { background: var(--color-ink); color: var(--color-paper); }
+  .btn-text { border-color: transparent; background: transparent; padding-inline: 0.5rem; }
+  .btn-text:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 4px; }
+  .btn-sm { min-height: 36px; padding: 0.4rem 0.9rem; font-size: 0.875rem; }
+  .btn-lg { min-height: 58px; padding: 0.9rem 1.75rem; font-size: 1.125rem; }
+  .btn-pill { border-radius: 999px; }
+
+  .field { display: grid; gap: 0.35rem; }
+  .field > span { font-size: 0.8125rem; font-weight: 700; letter-spacing: var(--tracking-tight); text-transform: lowercase; }
+  .input { width: 100%; min-height: 46px; padding: 0.6rem 0.8rem; background: var(--color-paper); border: 1px solid var(--color-ink); border-radius: 4px; color: var(--color-ink); }
+  .input:focus { outline: 2px solid var(--color-ink); outline-offset: 1px; }
+  .input::placeholder { color: var(--color-dim); }
+
+  /* Option buttons (milk / temperature / filters). Selected = black. */
+  .opt { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 46px; padding: .5rem 1.1rem; border: 1px solid var(--color-ink); border-radius: 4px; background: var(--color-paper); font-weight: 700; letter-spacing: var(--tracking-tight); text-transform: lowercase; }
+  .opt[aria-pressed="true"], .opt[aria-checked="true"], .opt[aria-selected="true"] { background: var(--color-ink); color: var(--color-paper); }
+
+  /* Site navigation: plain links, orange underline on the current page. */
+  .nav-link { position: relative; display: inline-flex; align-items: center; min-height: 44px; letter-spacing: -0.01em; white-space: nowrap; }
+  .nav-link[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: 2px; text-underline-offset: 6px; }
+  .nav-link:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+
+  .tag { display: inline-flex; align-items: center; gap: .3rem; padding: .1rem .45rem; font-size: .75rem; font-weight: 700; letter-spacing: -0.01em; text-transform: lowercase; border: 1px solid currentColor; border-radius: 3px; line-height: 1.5; }
+  .tag-solid { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+
+  .card { background: var(--color-paper); border: 1px solid var(--color-line); }
+  .skeleton { background: linear-gradient(90deg, var(--color-wash), #fafafa, var(--color-wash)); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  .dot { display: inline-block; width: .55rem; height: .55rem; border-radius: 999px; background: currentColor; }
+  .pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+  .scroll-thin { scrollbar-width: thin; scrollbar-color: rgb(29 27 27 / .25) transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

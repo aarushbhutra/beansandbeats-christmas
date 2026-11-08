@@ -70,3 +70,7 @@ Order entry, device counters, persistent QR tickets, staff sign-in, barista cont
 ## Lead integration status
 
 Menu/report handlers are wired to authenticated API routes and database functions. Lead pages share the staff session and an atomic, persistent menu outbox. The home page links all six modules. Shared tests include SQL role/revision/idempotency checks and menu refresh/reopen/acknowledgement checks; Person 2 unit tests run from the root command. Apply the third migration for hosted validation. Device watermark/heartbeat reporting, hosted tests and final event reconciliation remain pending.
+
+## Offline reliability status
+
+Production shell caching, network-disabled tablet reload and full queued-to-collected local chains are implemented. Server replay uses existing Supabase SQL functions; tests simulate an expired session and a response lost after commit and verify exactly-once order/receipt counts. Chromium checks confirm cached operational pages and persistent offline writes without API/Supabase response caching. Live Supabase validation, actionable conflict reconciliation, device freshness reporting, offline role restoration and target-device testing remain outstanding.

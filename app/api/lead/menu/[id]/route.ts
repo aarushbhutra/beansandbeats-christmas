@@ -1,5 +1,11 @@
-import {createMenuHandlers} from "@/lib/server/menu";
-import {authenticateSharedStaff} from "@/lib/server/menu/shared-auth";
-import {menuRepository} from "@/lib/server/lead-repository";
-import {configured,failure} from "@/lib/server/api";
-export async function PATCH(request:Request,context:{params:Promise<{id:string}>}){if(!configured())return failure("NOT_CONFIGURED","Configure the database first",503);return createMenuHandlers({authenticate:authenticateSharedStaff,repository:menuRepository}).patch(request,(await context.params).id);}
+import { isUuid } from "@/lib/domain/rules";
+import { requireStaff } from "@/lib/server/auth";
+import { HttpError, json, readJson, route } from "@/lib/server/http";
+import { updateMenuItem } from "@/lib/server/lead";
+
+export const PATCH = route<{ params: Promise<{ id: string }> }>(async (request, context) => {
+  const { db, staff } = await requireStaff(request, ["lead"]);
+  const { id } = await context.params;
+  if (!isUuid(id)) throw new HttpError(400, "INVALID_ID", "Invalid menu item.");
+  return json({ item: await updateMenuItem(db, staff, id, await readJson(request, 5_000)) });
+});

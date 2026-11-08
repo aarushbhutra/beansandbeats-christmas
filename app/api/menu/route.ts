@@ -1,5 +1,6 @@
-import {createMenuHandlers} from "@/lib/server/menu";
-import {authenticateSharedStaff} from "@/lib/server/menu/shared-auth";
-import {menuRepository} from "@/lib/server/lead-repository";
-import {configured,failure} from "@/lib/server/api";
-export async function GET(request:Request){if(!configured())return failure("NOT_CONFIGURED","Configure the database first",503);return createMenuHandlers({authenticate:authenticateSharedStaff,repository:menuRepository}).get(request);}
+import { getDb } from "@/lib/server/db";
+import { json, route } from "@/lib/server/http";
+import { menuItems } from "@/lib/server/orders";
+
+/** Public, active menu only. */
+export const GET = route(async () => json({ items: await menuItems(await getDb(), false), serverTime: new Date().toISOString() }));
