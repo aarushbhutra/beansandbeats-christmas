@@ -1,6 +1,6 @@
 # beans&beats · Christmas Together 2026
 
-**Live app:** https://beansandbeats-christmas.vercel.app · **Demo video:** pending 
+**Live app:** https://beansandbeats-christmas.vercel.app · **Demo video:** [Video](https://1drv.ms/v/c/d4b0547c464de8f1/IQDJYmrMbCL9Q5FC5RSrjuC4AdLOWClvITfocAC4uftVkVI?e=U2uoPi) **Technical Summary:** [PDF](https://drive.google.com/file/d/1rIfPe0Z43T_Q24c84gaoA2tCMPKJfNHm/view?usp=sharing)
 
 **1. What we built**
 
